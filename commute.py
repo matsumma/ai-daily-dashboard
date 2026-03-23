@@ -46,8 +46,8 @@ def send_telegram_message(message):
     }
 
     response = requests.post(url, data=payload)
-    print("TELEGRAM RESPONSE:", response.text)  # 👈 ADD THIS
     print("TELEGRAM STATUS:", response.status_code)
+    print("TELEGRAM RESPONSE:", response.text)  # 👈 ADD THIS
     
     return response.json()
 
