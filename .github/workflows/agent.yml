@@ -31,6 +31,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          HOME_ADDRESS: ${{ secrets.HOME_ADDRESS }}
+          WORK_ADDRESS: ${{ secrets.WORK_ADDRESS }}
         run: |
           python commute.py
 
