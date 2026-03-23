@@ -301,11 +301,27 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, al
     destination = route["destination"]
     origin_short = shorten_location(origin)
     destination_short = shorten_location(destination)
+    primary_route_text = format_route_summary(route.get("key_roads", []))
 
+    alt_route_text = ""
+    
+    if alternate_route:
+        alt_route_text = format_route_summary(alternate_route.get("key_roads", []))
+    
     alt_text = ""
 
     if alternate_route:
         alt_text = f"\n🛣️ Alt Route: {alternate_route['duration_minutes']} min ({alternate_route['distance_miles']} mi)\n"
+    
+    alt_section = ""
+
+    if alternate_route:
+        diff_text = f"+{time_diff} min" if time_diff > 0 else f"{time_diff} min"
+
+        alt_section = f"""
+    🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
+    Route: {alt_route_text}
+    """
     
     route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
@@ -314,23 +330,35 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, al
         weather_text = f"\n🌦️ Weather: {weather_analysis['condition']}\n{weather_analysis['impact']}\n"
 
     message = f"""
-{route_label}
+    {route_label}
 
-🚗 {origin_short} → {destination_short}
+    🚗 {origin_short} → {destination_short}
 
-Traffic: {analysis['status']}
-Commute: {analysis['current_minutes']} min
+    🚗 Primary: {analysis['current_minutes']} min
+    Route: {primary_route_text}
 
-{alt_text}
+    🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
+    Route: {alt_route_text}
 
-{weather_text}
+    {alt_section}
+    
+    Traffic: {analysis['status']}
 
-⏰ Leave Plan:
-{leave_plan['status']}
-Arrive by {leave_plan['arrival_time']}
-"""
+    {weather_text}
+
+    ⏰ Leave Plan:
+    {leave_plan['status']}
+    Arrive by {leave_plan['arrival_time']}
+    """
 
     return message
+
+def format_route_summary(roads):
+    if not roads:
+        return "Route unavailable"
+
+    # Keep it short and clean
+    return " → ".join(roads)
 
 def shorten_location(address):
     return address.split(",")[0]
