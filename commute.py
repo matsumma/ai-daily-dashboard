@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 
 
-print("DEBUG KEY:", os.getenv("GOOGLE_MAPS_API_KEY"))
+#print("DEBUG KEY:", os.getenv("GOOGLE_MAPS_API_KEY"))
 # Load environment variables
 load_dotenv()
 
