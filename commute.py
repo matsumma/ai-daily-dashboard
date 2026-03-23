@@ -10,7 +10,8 @@ load_dotenv()
 API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
+HOME = os.getenv("HOME_ADDRESS")
+WORK = os.getenv("WORK_ADDRESS")
 # Debug check (VERY IMPORTANT for GitHub)
 if not API_KEY:
     raise ValueError("Missing GOOGLE_MAPS_API_KEY")
@@ -28,13 +29,31 @@ WORK_START_MINUTE = 0
 # Buffer time (parking, walking, etc.)
 BUFFER_MINUTES = 15
 
-# Your commute route
-ORIGIN = "Downtown Honolulu, HI"
-DESTINATION = "Pearl City, HI"
+# Your commute routes
+MORNING_ROUTE = {
+    "origin": HOME
+    "destination": WORK
+}
+
+EVENING_ROUTE = {
+    "origin": WORK
+    "destination": HOME
+}
 
 # Baseline (we’ll improve this later with real data)
 BASELINE_MINUTES = 18
 
+def get_current_route():
+    now = datetime.now()
+    hour = now.hour
+
+    # Morning commute (3 AM – 12 PM)
+    if 3 <= hour < 12:
+        return "morning", MORNING_ROUTE
+    
+    # Afternoon/evening commute
+    else:
+        return "evening", EVENING_ROUTE
 
 def get_weather():
     api_key = os.getenv("OPENWEATHER_API_KEY")
@@ -97,7 +116,7 @@ def send_telegram_message(message):
     
     return response.json()
 
-def get_commute_time():
+def get_commute_time(origin, destination):
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
     headers = {
@@ -107,12 +126,8 @@ def get_commute_time():
     }
 
     body = {
-        "origin": {
-            "address": ORIGIN
-        },
-        "destination": {
-            "address": DESTINATION
-        },
+        "origin": {"address": origin},
+        "destination": {"address": destination},
         "travelMode": "DRIVE",
         "routingPreference": "TRAFFIC_AWARE"
     }
@@ -120,12 +135,9 @@ def get_commute_time():
     response = requests.post(url, json=body, headers=headers)
     data = response.json()
 
-    print("DEBUG RESPONSE:", data)  # remove later if you want
-
     try:
         route = data["routes"][0]
 
-        # Convert duration from "1234s" → seconds
         duration_seconds = int(route["duration"].replace("s", ""))
         distance_meters = route["distanceMeters"]
 
@@ -210,17 +222,17 @@ def get_leave_recommendation(commute_analysis):
         "status": status
     }
 
-def format_message(analysis, leave_plan, weather_analysis):
-    if not analysis or not leave_plan:
-        return "Error generating commute update."
+def format_message(analysis, leave_plan, weather_analysis, route_type):
+    route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
     weather_text = ""
     if weather_analysis:
         weather_text = f"\n🌦️ Weather: {weather_analysis['condition']}\n{weather_analysis['impact']}\n"
 
     message = f"""
-🚗 Commute Update
+{route_label}
 
+🚗 Commute Update
 Traffic: {analysis['status']}
 Commute: {analysis['current_minutes']} min
 
@@ -239,11 +251,15 @@ if __name__ == "__main__":
 
     weather = get_weather()
     weather_analysis = analyze_weather(weather)
-    commute = get_commute_time()
+    route_type, route = get_current_route()
+    commute = get_commute_time(
+    route["origin"],
+    route["destination"]
+    )   
     analysis = analyze_commute(commute)
     leave_plan = get_leave_recommendation(analysis)
 
-    message = format_message(analysis, leave_plan, weather_analysis)
+    message = format_message(analysis, leave_plan, weather_analysis, route_type)
 
     print("MESSAGE GENERATED")
     print(message)
