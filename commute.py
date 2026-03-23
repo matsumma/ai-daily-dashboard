@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 
 
+print("DEBUG KEY:", os.getenv("GOOGLE_MAPS_API_KEY"))
 # Load environment variables
 load_dotenv()
 
@@ -398,7 +399,7 @@ def format_route_summary(roads):
 def shorten_location(address):
     return address.split(",")[0]
 
-if __name__ == "__main__":
+def main():
     print("Using Routes API...")
     #print("SCRIPT STARTED")
 
@@ -444,3 +445,6 @@ if __name__ == "__main__":
     send_telegram_message(message)
 
     print("DONE")
+
+if __name__ == "__main__":
+    main()
