@@ -69,7 +69,7 @@ def get_weather():
 
     response = requests.get(url, params=params)
     data = response.json()
-    print (data)
+    #print (data)
     try:
         weather_main = data["weather"][0]["main"]
         description = data["weather"][0]["description"]
@@ -223,7 +223,12 @@ def get_leave_recommendation(commute_analysis):
         "status": status
     }
 
-def format_message(analysis, leave_plan, weather_analysis, route_type):
+def format_message(analysis, leave_plan, weather_analysis, route_type, route):
+    origin = route["origin"]
+    destination = route["destination"]
+    origin_short = shorten_location(origin)
+    destination_short = shorten_location(destination)
+
     route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
     weather_text = ""
@@ -233,7 +238,8 @@ def format_message(analysis, leave_plan, weather_analysis, route_type):
     message = f"""
 {route_label}
 
-🚗 Commute Update
+🚗 {origin_short} → {destination_short}
+
 Traffic: {analysis['status']}
 Commute: {analysis['current_minutes']} min
 
@@ -246,9 +252,12 @@ Arrive by {leave_plan['arrival_time']}
 
     return message
 
+def shorten_location(address):
+    return address.split(",")[0]
+
 if __name__ == "__main__":
     print("Using Routes API...")
-    print("SCRIPT STARTED")
+    #print("SCRIPT STARTED")
 
     weather = get_weather()
     weather_analysis = analyze_weather(weather)
@@ -260,7 +269,7 @@ if __name__ == "__main__":
     analysis = analyze_commute(commute)
     leave_plan = get_leave_recommendation(analysis)
 
-    message = format_message(analysis, leave_plan, weather_analysis, route_type)
+    message = format_message(analysis, leave_plan, weather_analysis, route_type, route)
 
     print("MESSAGE GENERATED")
     print(message)
