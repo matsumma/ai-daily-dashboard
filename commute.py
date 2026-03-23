@@ -147,7 +147,7 @@ def extract_key_roads(steps):
             seen.add(r)
             unique_roads.append(r)
 
-    return unique_roads[:3]
+    return unique_roads[:10]
 
 def get_unique_route_segments(primary_roads, alternate_roads):
     primary_set = set(primary_roads)
