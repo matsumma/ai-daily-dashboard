@@ -4,6 +4,7 @@ import re
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 import pytz
+import json
 
 #print("DEBUG KEY:", os.getenv("GOOGLE_MAPS_API_KEY"))
 # Load environment variables
@@ -49,6 +50,21 @@ EVENING_ROUTE = {
 # Baseline (we’ll improve this later with real data)
 BASELINE_MINUTES = 18
 
+def save_status(status):
+    with open("status.json", "w") as f:
+        json.dump(status, f)
+
+def get_status():
+    try:
+        with open("status.json", "r") as f:
+            return json.load(f)
+    except:
+        return None
+
+def get_now_hst():
+    hst = pytz.timezone("Pacific/Honolulu")
+    return datetime.now(hst).strftime("%Y-%m-%d %H:%M:%S")
+
 def should_run_scheduled():
     hst = pytz.timezone("Pacific/Honolulu")
     now = datetime.now(hst)
@@ -66,18 +82,16 @@ def check_for_command():
     response = requests.get(url).json()
 
     if not response.get("result"):
-        return False
+        return None
 
     last_update = response["result"][-1]
     message = last_update.get("message", {}).get("text", "")
 
-    if message == "/run":
-        # Clear updates so it doesn't trigger again
-        offset = last_update["update_id"] + 1
-        requests.get(f"{url}?offset={offset}")
-        return True
+    # Clear updates
+    offset = last_update["update_id"] + 1
+    requests.get(f"{url}?offset={offset}")
 
-    return False
+    return message
 
 def get_current_route():
     HST = timezone(timedelta(hours=-10))
@@ -433,6 +447,12 @@ def main():
     print("Using Routes API...")
     #print("SCRIPT STARTED")
 
+    status = {
+        "last_run": get_now_hst(),
+        "last_trigger": "manual",  # or "scheduled"
+        "status": "success"
+    }
+
     weather = get_weather()
     weather_analysis = analyze_weather(weather)
     route_type, route = get_current_route()
@@ -474,20 +494,43 @@ def main():
     print("SENDING TELEGRAM MESSAGE...")
     send_telegram_message(message)
 
+    status["status"] = "success"
+    save_status(status)
+
     print("DONE")
+
+
 
 if __name__ == "__main__":
     print("🔍 Checking triggers...")
 
-    manual_trigger = check_for_command()
+    command = check_for_command()
     scheduled_trigger = should_run_scheduled()
 
-    if manual_trigger:
-        print("⚡ Manual trigger detected")
+    print(f"Command: {command}, Scheduled: {scheduled_trigger}")
+
+    if command == "/run":
+        print("⚡ Manual trigger")
         main()
 
+    elif command == "/status":
+        status = get_status()
+
+        if status:
+            message = f"""
+🤖 Commute Agent Status
+
+Last Run: {status['last_run']}
+Trigger: {status['last_trigger']}
+Status: {status['status']}
+"""
+        else:
+            message = "No status available yet."
+
+        send_telegram_message(message)
+
     elif scheduled_trigger:
-        print("⏰ Scheduled run triggered")
+        print("⏰ Scheduled run")
         main()
 
     else:
