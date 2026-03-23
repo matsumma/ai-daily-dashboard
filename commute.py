@@ -1,5 +1,6 @@
 import os
 import requests
+import re
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
@@ -123,16 +124,17 @@ def extract_key_roads(steps):
     for step in steps:
         instruction = step.get("navigationInstruction", {}).get("instructions", "")
 
-        # Look for important road indicators
-        if any(keyword in instruction for keyword in ["H-", "Highway", "Hwy", "Rd", "Blvd", "Ave", "St"]):
-            
-            # Clean instruction
-            cleaned = instruction.replace("Head", "").replace("Merge onto", "").replace("Take", "").strip()
-            
-            # Keep only first part (before extra directions)
-            cleaned = cleaned.split(" toward ")[0]
-            cleaned = cleaned.split(" to ")[0]
+        # Extract road names using regex patterns
+        matches = []
 
+        # Highways (H-1, I-95, etc.)
+        matches += re.findall(r'\bH-\d+\s?[EWNS]?\b', instruction)
+
+        # Common road types
+        matches += re.findall(r'\b[A-Z][a-zA-Z\s]+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Highway|Hwy)\b', instruction)
+
+        for match in matches:
+            cleaned = match.strip()
             roads.append(cleaned)
 
     # Remove duplicates while preserving order
@@ -143,7 +145,7 @@ def extract_key_roads(steps):
             seen.add(r)
             unique_roads.append(r)
 
-    return unique_roads[:3]  # limit to top 3 roads
+    return unique_roads[:3]
 
 def get_commute_routes(origin, destination):
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
