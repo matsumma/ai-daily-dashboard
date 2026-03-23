@@ -2,7 +2,8 @@ name: Run Daily Dashboard Agent
 
 on:
   schedule:
-    - cron: '0 14 * * *'
+    - cron: '0 17 * * *'  # morning
+    - cron: '0 1 * * *'   # evening
   workflow_dispatch:
 
 jobs:
