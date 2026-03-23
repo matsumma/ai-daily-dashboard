@@ -296,12 +296,12 @@ def get_leave_recommendation(commute_analysis):
         "status": status
     }
 
-def format_message(analysis, leave_plan, weather_analysis, route_type, route, alternate_route):
+def format_message(analysis, leave_plan, weather_analysis, route_type, route, primary_route, alternate_route):
     origin = route["origin"]
     destination = route["destination"]
     origin_short = shorten_location(origin)
     destination_short = shorten_location(destination)
-    primary_route_text = format_route_summary(route.get("key_roads", []))
+    primary_route_text = format_route_summary(primary_route.get("key_roads", []))
 
     route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     analysis = analyze_commute(primary_route)
     leave_plan = get_leave_recommendation(analysis)
 
-    message = format_message(analysis, leave_plan, weather_analysis, route_type, route, alternate_route)
+    message = format_message(analysis, leave_plan, weather_analysis, route_type, route, primary_route, alternate_route)
 
     print("MESSAGE GENERATED")
     print(message)
