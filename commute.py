@@ -49,7 +49,7 @@ def get_weather():
 
     response = requests.get(url, params=params)
     data = response.json()
-
+    print (data)
     try:
         weather_main = data["weather"][0]["main"]
         description = data["weather"][0]["description"]
