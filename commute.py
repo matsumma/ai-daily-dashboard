@@ -2,7 +2,7 @@ import os
 import requests
 import re
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 # Load environment variables
@@ -46,7 +46,9 @@ EVENING_ROUTE = {
 BASELINE_MINUTES = 18
 
 def get_current_route():
-    now = datetime.now()
+    HST = timezone(timedelta(hours=-10))
+    now = datetime.now(HST)
+    #now = datetime.now()
     hour = now.hour
 
     # Morning commute (3 AM – 12 PM)
@@ -166,7 +168,7 @@ def get_commute_routes(origin, destination):
 
     response = requests.post(url, json=body, headers=headers)
     data = response.json()
-    print("STEP DEBUG:", data["routes"][0]["legs"][0]["steps"][:2])
+    #print("STEP DEBUG:", data["routes"][0]["legs"][0]["steps"][:2])
     print("DEBUG ROUTES:", data)  # keep for now
 
     routes = []
@@ -261,7 +263,10 @@ def get_leave_recommendation(commute_analysis):
     if not commute_analysis:
         return None
 
-    now = datetime.now()
+    HST = timezone(timedelta(hours=-10))
+    now = datetime.now(HST)
+    #now = datetime.now()
+    print("DEBUG CURRENT TIME:", now.strftime("%Y-%m-%d %I:%M %p"))
 
     # Target arrival time (today)
     arrival_time = now.replace(
