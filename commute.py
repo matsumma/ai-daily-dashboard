@@ -318,7 +318,9 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, pr
     destination = route["destination"]
     origin_short = shorten_location(origin)
     destination_short = shorten_location(destination)
-    primary_route_text = format_route_summary(primary_route.get("key_roads", []))
+    
+    primary_roads = primary_route.get("unique_roads") or primary_route.get("key_roads", [])
+    primary_route_text = format_route_summary(primary_roads)
 
     route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
@@ -335,7 +337,8 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, pr
 
     if alternate_route:
         diff_text = f"+{time_diff} min" if time_diff > 0 else f"{time_diff} min"
-        alt_route_text = format_route_summary(alternate_route.get("key_roads", []))
+        alt_roads = alternate_route.get("unique_roads") or alternate_route.get("key_roads", [])
+        alt_route_text = format_route_summary(alt_roads)
 
         alt_section = f"""
 🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
@@ -370,9 +373,8 @@ Route: {alt_route_text}
 
 def format_route_summary(roads):
     if not roads:
-        return "Route unavailable"
+        return "Main route"
 
-    # Keep it short and clean
     return " → ".join(roads)
 
 def shorten_location(address):
