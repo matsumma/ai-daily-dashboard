@@ -303,27 +303,28 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, al
     destination_short = shorten_location(destination)
     primary_route_text = format_route_summary(route.get("key_roads", []))
 
-    alt_route_text = ""
-    
-    if alternate_route:
-        alt_route_text = format_route_summary(alternate_route.get("key_roads", []))
-    
-    alt_text = ""
+    route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
+    # Compute time diff ONCE
+    time_diff = None
     if alternate_route:
-        alt_text = f"\n🛣️ Alt Route: {alternate_route['duration_minutes']} min ({alternate_route['distance_miles']} mi)\n"
-    
+        time_diff = round(
+            alternate_route["duration_minutes"] - analysis["current_minutes"], 
+            1
+        )
+
+    # Alternate section (ONLY ONE BLOCK)
     alt_section = ""
 
     if alternate_route:
         diff_text = f"+{time_diff} min" if time_diff > 0 else f"{time_diff} min"
+        alt_route_text = format_route_summary(alternate_route.get("key_roads", []))
 
         alt_section = f"""
-    🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
-    Route: {alt_route_text}
-    """
+🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
+Route: {alt_route_text}
+"""
     
-    route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
     weather_text = ""
     if weather_analysis:
@@ -337,11 +338,8 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route, al
     🚗 Primary: {analysis['current_minutes']} min
     Route: {primary_route_text}
 
-    🛣️ Alternate: {alternate_route['duration_minutes']} min ({diff_text})
-    Route: {alt_route_text}
-
     {alt_section}
-    
+
     Traffic: {analysis['status']}
 
     {weather_text}
