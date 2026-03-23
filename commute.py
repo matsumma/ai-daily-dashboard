@@ -183,6 +183,7 @@ Arrive by {leave_plan['arrival_time']}
 
 if __name__ == "__main__":
     print("Using Routes API...")
+    print("SCRIPT STARTED")
 
     commute = get_commute_time()
     analysis = analyze_commute(commute)
@@ -190,7 +191,10 @@ if __name__ == "__main__":
 
     message = format_message(analysis, leave_plan)
 
-    print("\n--- MESSAGE ---")
+    print("MESSAGE GENERATED")
     print(message)
-    send_telegram_message("TEST FROM GITHUB 🚀")
-    #send_telegram_message(message)
+
+    print("SENDING TELEGRAM MESSAGE...")
+    send_telegram_message(message)
+
+    print("DONE")
