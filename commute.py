@@ -171,7 +171,7 @@ def get_commute_time(origin, destination):
         "origin": {"address": origin},
         "destination": {"address": destination},
         "travelMode": "DRIVE",
-        "routingPreference": "TRAFFIC_AWARE"
+        "routingPreference": "TRAFFIC_AWARE",
         "computeAlternativeRoutes": True
     }
 
