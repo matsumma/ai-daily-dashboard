@@ -36,6 +36,52 @@ DESTINATION = "Pearl City, HI"
 BASELINE_MINUTES = 18
 
 
+def get_weather():
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+
+    url = "https://api.openweathermap.org/data/2.5/weather"
+
+    params = {
+        "q": "Honolulu,US",
+        "appid": api_key,
+        "units": "imperial"
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    try:
+        weather_main = data["weather"][0]["main"]
+        description = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+
+        return {
+            "condition": weather_main,
+            "description": description,
+            "temperature": temp
+        }
+
+    except Exception as e:
+        print("Weather error:", e)
+        return None
+
+def analyze_weather(weather):
+    if not weather:
+        return None
+
+    condition = weather["condition"]
+
+    if condition in ["Rain", "Drizzle", "Thunderstorm"]:
+        impact = "🔴 Weather may slow commute"
+    elif condition in ["Clouds"]:
+        impact = "🟡 Minor impact possible"
+    else:
+        impact = "🟢 No weather impact"
+
+    return {
+        "condition": weather["description"],
+        "impact": impact
+    }
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -164,15 +210,21 @@ def get_leave_recommendation(commute_analysis):
         "status": status
     }
 
-def format_message(analysis, leave_plan):
+def format_message(analysis, leave_plan, weather_analysis):
     if not analysis or not leave_plan:
         return "Error generating commute update."
+
+    weather_text = ""
+    if weather_analysis:
+        weather_text = f"\n🌦️ Weather: {weather_analysis['condition']}\n{weather_analysis['impact']}\n"
 
     message = f"""
 🚗 Commute Update
 
 Traffic: {analysis['status']}
 Commute: {analysis['current_minutes']} min
+
+{weather_text}
 
 ⏰ Leave Plan:
 {leave_plan['status']}
@@ -185,11 +237,13 @@ if __name__ == "__main__":
     print("Using Routes API...")
     print("SCRIPT STARTED")
 
+    weather = get_weather()
+    weather_analysis = analyze_weather(weather)
     commute = get_commute_time()
     analysis = analyze_commute(commute)
     leave_plan = get_leave_recommendation(analysis)
 
-    message = format_message(analysis, leave_plan)
+    message = format_message(analysis, leave_plan, weather_analysis)
 
     print("MESSAGE GENERATED")
     print(message)
