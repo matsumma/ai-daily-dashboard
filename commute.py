@@ -8,7 +8,19 @@ from datetime import datetime, timedelta
 load_dotenv()
 
 API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+# Debug check (VERY IMPORTANT for GitHub)
+if not API_KEY:
+    raise ValueError("Missing GOOGLE_MAPS_API_KEY")
+
+if not TELEGRAM_TOKEN:
+    raise ValueError("Missing TELEGRAM_BOT_TOKEN")
+
+if not CHAT_ID:
+    raise ValueError("Missing TELEGRAM_CHAT_ID")
+    
 # Set your target arrival time (adjust as needed)
 WORK_START_HOUR = 9
 WORK_START_MINUTE = 0
@@ -23,8 +35,7 @@ DESTINATION = "Pearl City, HI"
 # Baseline (we’ll improve this later with real data)
 BASELINE_MINUTES = 18
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
