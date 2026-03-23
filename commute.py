@@ -400,17 +400,18 @@ if __name__ == "__main__":
             alternate_route.get("key_roads", [])
         )
 
-    print("PRIMARY UNIQUE:", primary_route.get("unique_roads"))
-    if alternate_route:
-        print("ALT UNIQUE:", alternate_route.get("unique_roads"))
-
     # Store back into route objects
     if primary_route:
         primary_route["unique_roads"] = primary_unique
 
     if alternate_route:
         alternate_route["unique_roads"] = alternate_unique
+
+    print("PRIMARY UNIQUE:", primary_route.get("unique_roads"))
+    if alternate_route:
+        print("ALT UNIQUE:", alternate_route.get("unique_roads"))
     
+
     analysis = analyze_commute(primary_route)
     leave_plan = get_leave_recommendation(analysis)
 
