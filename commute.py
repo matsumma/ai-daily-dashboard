@@ -24,8 +24,11 @@ if not CHAT_ID:
     raise ValueError("Missing TELEGRAM_CHAT_ID")
 
 # Set your target arrival time (adjust as needed)
-WORK_START_HOUR = 9
-WORK_START_MINUTE = 0
+WORK_ARRIVAL_HOUR = 9
+WORK_ARRIVAL_MINUTE = 0
+
+HOME_ARRIVAL_HOUR = 18   # 6:00 PM (adjust as needed)
+HOME_ARRIVAL_MINUTE = 0
 
 # Buffer time (parking, walking, etc.)
 BUFFER_MINUTES = 15
@@ -269,24 +272,34 @@ def analyze_commute(commute_data):
         "recommendation": recommendation
     }
 
-def get_leave_recommendation(commute_analysis):
+def get_leave_recommendation(commute_analysis, route_type):
     if not commute_analysis:
         return None
 
+    from datetime import datetime, timedelta, timezone
+
     HST = timezone(timedelta(hours=-10))
     now = datetime.now(HST)
-    #now = datetime.now()
+
     print("DEBUG CURRENT TIME:", now.strftime("%Y-%m-%d %I:%M %p"))
+
+    # 🎯 Select arrival time based on route
+    if route_type == "morning":
+        target_hour = WORK_ARRIVAL_HOUR
+        target_minute = WORK_ARRIVAL_MINUTE
+    else:
+        target_hour = HOME_ARRIVAL_HOUR
+        target_minute = HOME_ARRIVAL_MINUTE
 
     # Target arrival time (today)
     arrival_time = now.replace(
-        hour=WORK_START_HOUR,
-        minute=WORK_START_MINUTE,
+        hour=target_hour,
+        minute=target_minute,
         second=0,
         microsecond=0
     )
 
-    # If it's already past work start, assume tomorrow
+    # If it's already past target, assume tomorrow
     if now > arrival_time:
         arrival_time += timedelta(days=1)
 
@@ -350,6 +363,11 @@ Route: {alt_route_text}
     if weather_analysis:
         weather_text = f"\n🌦️ Weather: {weather_analysis['condition']}\n{weather_analysis['impact']}\n"
 
+    if route_type == "morning":
+        arrival_label = "Arrive at work"
+    else:
+        arrival_label = "Arrive home"
+        
     message = f"""
     {route_label}
 
@@ -366,7 +384,7 @@ Route: {alt_route_text}
 
     ⏰ Leave Plan:
     {leave_plan['status']}
-    Arrive by {leave_plan['arrival_time']}
+    {arrival_label}: {leave_plan['arrival_time']}
     """
 
     return message
@@ -415,7 +433,7 @@ if __name__ == "__main__":
     
 
     analysis = analyze_commute(primary_route)
-    leave_plan = get_leave_recommendation(analysis)
+    leave_plan = get_leave_recommendation(analysis, route_type)
 
     message = format_message(analysis, leave_plan, weather_analysis, route_type, route, primary_route, alternate_route)
 
