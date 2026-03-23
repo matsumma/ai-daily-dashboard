@@ -117,6 +117,47 @@ def send_telegram_message(message):
     
     return response.json()
 
+def get_commute_routes(origin, destination):
+    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": API_KEY,
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.routeLabels,routes.legs.steps.navigationInstruction"
+    }
+
+    body = {
+        "origin": {"address": origin},
+        "destination": {"address": destination},
+        "travelMode": "DRIVE",
+        "routingPreference": "TRAFFIC_AWARE",
+        "computeAlternativeRoutes": True
+    }
+
+    response = requests.post(url, json=body, headers=headers)
+    data = response.json()
+    print("STEP DEBUG:", data["routes"][0]["legs"][0]["steps"][:2])
+    print("DEBUG ROUTES:", data)  # keep for now
+
+    routes = []
+
+    try:
+        for route in data.get("routes", []):
+            duration_seconds = int(route["duration"].replace("s", ""))
+            distance_meters = route["distanceMeters"]
+
+            routes.append({
+                "duration_minutes": round(duration_seconds / 60, 1),
+                "distance_miles": round(distance_meters / 1609, 2),
+                "labels": route.get("routeLabels", [])
+            })
+
+        return routes[:2]  # only return top 2
+
+    except Exception as e:
+        print("Error parsing routes:", e)
+        return None
+        
 def get_commute_time(origin, destination):
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
@@ -131,6 +172,7 @@ def get_commute_time(origin, destination):
         "destination": {"address": destination},
         "travelMode": "DRIVE",
         "routingPreference": "TRAFFIC_AWARE"
+        "computeAlternativeRoutes": True
     }
 
     response = requests.post(url, json=body, headers=headers)
@@ -223,12 +265,17 @@ def get_leave_recommendation(commute_analysis):
         "status": status
     }
 
-def format_message(analysis, leave_plan, weather_analysis, route_type, route):
+def format_message(analysis, leave_plan, weather_analysis, route_type, route, alternate_route):
     origin = route["origin"]
     destination = route["destination"]
     origin_short = shorten_location(origin)
     destination_short = shorten_location(destination)
 
+    alt_text = ""
+
+    if alternate_route:
+        alt_text = f"\n🛣️ Alt Route: {alternate_route['duration_minutes']} min ({alternate_route['distance_miles']} mi)\n"
+    
     route_label = "🌅 Morning Commute" if route_type == "morning" else "🌇 Evening Commute"
 
     weather_text = ""
@@ -242,6 +289,8 @@ def format_message(analysis, leave_plan, weather_analysis, route_type, route):
 
 Traffic: {analysis['status']}
 Commute: {analysis['current_minutes']} min
+
+{alt_text}
 
 {weather_text}
 
@@ -262,14 +311,14 @@ if __name__ == "__main__":
     weather = get_weather()
     weather_analysis = analyze_weather(weather)
     route_type, route = get_current_route()
-    commute = get_commute_time(
-    route["origin"],
-    route["destination"]
-    )   
-    analysis = analyze_commute(commute)
+    routes = get_commute_routes(route["origin"], route["destination"])
+
+    primary_route = routes[0] if routes else None
+    alternate_route = routes[1] if routes and len(routes) > 1 else None
+    analysis = analyze_commute(primary_route)
     leave_plan = get_leave_recommendation(analysis)
 
-    message = format_message(analysis, leave_plan, weather_analysis, route_type, route)
+    message = format_message(analysis, leave_plan, weather_analysis, route_type, route, alternate_route)
 
     print("MESSAGE GENERATED")
     print(message)
