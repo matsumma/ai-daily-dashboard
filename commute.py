@@ -24,10 +24,10 @@ if not CHAT_ID:
     raise ValueError("Missing TELEGRAM_CHAT_ID")
 
 # Set your target arrival time (adjust as needed)
-WORK_ARRIVAL_HOUR = 9
-WORK_ARRIVAL_MINUTE = 0
+WORK_ARRIVAL_HOUR = 7    # 7:30 AM
+WORK_ARRIVAL_MINUTE = 30
 
-HOME_ARRIVAL_HOUR = 18   # 6:00 PM (adjust as needed)
+HOME_ARRIVAL_HOUR = 16   # 6:00 PM (adjust as needed)
 HOME_ARRIVAL_MINUTE = 0
 
 # Buffer time (parking, walking, etc.)
