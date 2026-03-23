@@ -117,6 +117,34 @@ def send_telegram_message(message):
     
     return response.json()
 
+def extract_key_roads(steps):
+    roads = []
+
+    for step in steps:
+        instruction = step.get("navigationInstruction", {}).get("instructions", "")
+
+        # Look for important road indicators
+        if any(keyword in instruction for keyword in ["H-", "Highway", "Hwy", "Rd", "Blvd", "Ave", "St"]):
+            
+            # Clean instruction
+            cleaned = instruction.replace("Head", "").replace("Merge onto", "").replace("Take", "").strip()
+            
+            # Keep only first part (before extra directions)
+            cleaned = cleaned.split(" toward ")[0]
+            cleaned = cleaned.split(" to ")[0]
+
+            roads.append(cleaned)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_roads = []
+    for r in roads:
+        if r not in seen:
+            seen.add(r)
+            unique_roads.append(r)
+
+    return unique_roads[:3]  # limit to top 3 roads
+
 def get_commute_routes(origin, destination):
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
@@ -145,12 +173,15 @@ def get_commute_routes(origin, destination):
         for route in data.get("routes", []):
             duration_seconds = int(route["duration"].replace("s", ""))
             distance_meters = route["distanceMeters"]
-
+            steps = route["legs"][0]["steps"]
+            key_roads = extract_key_roads(steps)
             routes.append({
                 "duration_minutes": round(duration_seconds / 60, 1),
                 "distance_miles": round(distance_meters / 1609, 2),
-                "labels": route.get("routeLabels", [])
+                "labels": route.get("routeLabels", []),
+                "key_roads": key_roads
             })
+            print("KEY ROADS:", key_roads) 
 
         return routes[:2]  # only return top 2
 
