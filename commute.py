@@ -20,7 +20,7 @@ if not TELEGRAM_TOKEN:
 
 if not CHAT_ID:
     raise ValueError("Missing TELEGRAM_CHAT_ID")
-    
+
 # Set your target arrival time (adjust as needed)
 WORK_START_HOUR = 9
 WORK_START_MINUTE = 0
@@ -191,5 +191,5 @@ if __name__ == "__main__":
 
     print("\n--- MESSAGE ---")
     print(message)
-
-    send_telegram_message(message)
+    send_telegram_message("TEST FROM GITHUB 🚀")
+    #send_telegram_message(message)
