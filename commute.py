@@ -149,6 +149,16 @@ def extract_key_roads(steps):
 
     return unique_roads[:3]
 
+def get_unique_route_segments(primary_roads, alternate_roads):
+    primary_set = set(primary_roads)
+    alternate_set = set(alternate_roads)
+
+    primary_unique = [r for r in primary_roads if r not in alternate_set]
+    alternate_unique = [r for r in alternate_roads if r not in primary_set]
+
+    return primary_unique, alternate_unique
+
+
 def get_commute_routes(origin, destination):
     url = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
@@ -379,6 +389,28 @@ if __name__ == "__main__":
 
     primary_route = routes[0] if routes else None
     alternate_route = routes[1] if routes and len(routes) > 1 else None
+    
+    # Default values
+    primary_unique = primary_route.get("key_roads", []) if primary_route else []
+    alternate_unique = []
+
+    if primary_route and alternate_route:
+        primary_unique, alternate_unique = get_unique_route_segments(
+            primary_route.get("key_roads", []),
+            alternate_route.get("key_roads", [])
+        )
+
+    print("PRIMARY UNIQUE:", primary_route.get("unique_roads"))
+    if alternate_route:
+        print("ALT UNIQUE:", alternate_route.get("unique_roads"))
+
+    # Store back into route objects
+    if primary_route:
+        primary_route["unique_roads"] = primary_unique
+
+    if alternate_route:
+        alternate_route["unique_roads"] = alternate_unique
+    
     analysis = analyze_commute(primary_route)
     leave_plan = get_leave_recommendation(analysis)
 
