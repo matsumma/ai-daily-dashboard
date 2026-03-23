@@ -3,7 +3,7 @@ import requests
 import re
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
-
+import pytz
 
 #print("DEBUG KEY:", os.getenv("GOOGLE_MAPS_API_KEY"))
 # Load environment variables
@@ -48,6 +48,36 @@ EVENING_ROUTE = {
 
 # Baseline (we’ll improve this later with real data)
 BASELINE_MINUTES = 18
+
+def should_run_scheduled():
+    hst = pytz.timezone("Pacific/Honolulu")
+    now = datetime.now(hst)
+
+    hour = now.hour
+    minute = now.minute
+
+    # Run around 5:00 AM and 3:00 PM
+    return (hour == 5 and minute < 10) or (hour == 15 and minute < 10)
+
+def check_for_command():
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    url = f"https://api.telegram.org/bot{token}/getUpdates"
+
+    response = requests.get(url).json()
+
+    if not response.get("result"):
+        return False
+
+    last_update = response["result"][-1]
+    message = last_update.get("message", {}).get("text", "")
+
+    if message == "/run":
+        # Clear updates so it doesn't trigger again
+        offset = last_update["update_id"] + 1
+        requests.get(f"{url}?offset={offset}")
+        return True
+
+    return False
 
 def get_current_route():
     HST = timezone(timedelta(hours=-10))
@@ -447,4 +477,18 @@ def main():
     print("DONE")
 
 if __name__ == "__main__":
-    main()
+    print("🔍 Checking triggers...")
+
+    manual_trigger = check_for_command()
+    scheduled_trigger = should_run_scheduled()
+
+    if manual_trigger:
+        print("⚡ Manual trigger detected")
+        main()
+
+    elif scheduled_trigger:
+        print("⏰ Scheduled run triggered")
+        main()
+
+    else:
+        print("⏭️ Skipping run")
