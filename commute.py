@@ -176,7 +176,7 @@ def extract_road_name(step):
 
     # fallback: return step if it's already a road name
     return step
-    
+
 def extract_roads(steps):
     roads = []
 
@@ -497,7 +497,7 @@ def main():
     weather_analysis = analyze_weather(weather)
     route_type, route = get_current_route()
     routes = get_commute_routes(route["origin"], route["destination"])
-
+    print(routes)
     primary_route = routes[0] if routes else None
     alternate_route = routes[1] if routes and len(routes) > 1 else None
     
