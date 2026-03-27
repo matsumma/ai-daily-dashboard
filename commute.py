@@ -181,11 +181,19 @@ def extract_roads(steps):
     roads = []
 
     for step in steps:
-        road = extract_road_name(step)
+        instruction = step.get("navigationInstruction", {}).get("instructions", "")
+         # Extract road names using regex patterns
+        matches = []
 
-        # remove duplicates in sequence
-        if not roads or roads[-1] != road:
-            roads.append(road)
+        # Highways (H-1, I-95, etc.)
+        matches += re.findall(r'\bH-\d+\s?[EWNS]?\b', instruction)
+
+        # Common road types
+        matches += re.findall(r'\b[A-Z][a-zA-Z\s]+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Highway|Hwy)\b', instruction)
+
+        for match in matches:
+            cleaned = match.strip()
+            roads.append(cleaned)
 
     return roads
 
