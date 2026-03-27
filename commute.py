@@ -169,33 +169,52 @@ def send_telegram_message(message):
     return response.json()
 
 def extract_key_roads(steps):
-    roads = []
+    roads = extract_roads(steps)
 
-    for step in steps:
-        instruction = step.get("navigationInstruction", {}).get("instructions", "")
-
-        # Extract road names using regex patterns
-        matches = []
-
-        # Highways (H-1, I-95, etc.)
-        matches += re.findall(r'\bH-\d+\s?[EWNS]?\b', instruction)
-
-        # Common road types
-        matches += re.findall(r'\b[A-Z][a-zA-Z\s]+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Highway|Hwy)\b', instruction)
-
-        for match in matches:
-            cleaned = match.strip()
-            roads.append(cleaned)
-
-    # Remove duplicates while preserving order
+    key_roads = []
     seen = set()
-    unique_roads = []
-    for r in roads:
-        if r not in seen:
-            seen.add(r)
-            unique_roads.append(r)
 
-    return unique_roads[:10]
+    for road in roads:
+        if road not in seen:
+            seen.add(road)
+
+            if "H-" in road or "Highway" in road:
+                key_roads.append(road)
+
+    return key_roads
+
+def format_route(roads):
+    return " → ".join(roads)
+    
+# def extract_key_roads(steps):
+#     roads = []
+
+#     for step in steps:
+#         instruction = step.get("navigationInstruction", {}).get("instructions", "")
+
+#         # Extract road names using regex patterns
+#         matches = []
+
+#         # Highways (H-1, I-95, etc.)
+#         matches += re.findall(r'\bH-\d+\s?[EWNS]?\b', instruction)
+
+#         # Common road types
+#         matches += re.findall(r'\b[A-Z][a-zA-Z\s]+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Highway|Hwy)\b', instruction)
+
+#         for match in matches:
+#             cleaned = match.strip()
+#             roads.append(cleaned)
+
+#     # Remove duplicates while preserving order
+#     seen = set()
+#     unique_roads = []
+#     for r in roads:
+#         if r not in seen:
+#             seen.add(r)
+#             unique_roads.append(r)
+
+#     return unique_roads[:10]
+
 
 def get_unique_route_segments(primary_roads, alternate_roads):
     primary_set = set(primary_roads)
