@@ -183,9 +183,7 @@ def extract_key_roads(steps):
 
     return key_roads
 
-def format_route(roads):
-    return " → ".join(roads)
-    
+
 # def extract_key_roads(steps):
 #     roads = []
 
@@ -481,25 +479,25 @@ def main():
     alternate_route = routes[1] if routes and len(routes) > 1 else None
     
     # Default values
-    primary_unique = primary_route.get("key_roads", []) if primary_route else []
-    alternate_unique = []
+    #primary_unique = primary_route.get("key_roads", []) if primary_route else []
+    #alternate_unique = []
 
-    if primary_route and alternate_route:
-        primary_unique, alternate_unique = get_unique_route_segments(
-            primary_route.get("key_roads", []),
-            alternate_route.get("key_roads", [])
-        )
+    #if primary_route and alternate_route:
+    #    primary_unique, alternate_unique = get_unique_route_segments(
+    #        primary_route.get("key_roads", []),
+    #        alternate_route.get("key_roads", [])
+    #    )
 
     # Store back into route objects
-    if primary_route:
-        primary_route["unique_roads"] = primary_unique
+    #if primary_route:
+    #    primary_route["unique_roads"] = primary_unique
 
-    if alternate_route:
-        alternate_route["unique_roads"] = alternate_unique
+    #if alternate_route:
+    #    alternate_route["unique_roads"] = alternate_unique
 
-    print("PRIMARY UNIQUE:", primary_route.get("unique_roads"))
-    if alternate_route:
-        print("ALT UNIQUE:", alternate_route.get("unique_roads"))
+    #print("PRIMARY UNIQUE:", primary_route.get("unique_roads"))
+    #if alternate_route:
+    #    print("ALT UNIQUE:", alternate_route.get("unique_roads"))
     
 
     analysis = analyze_commute(primary_route)
