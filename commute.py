@@ -168,6 +168,18 @@ def send_telegram_message(message):
     
     return response.json()
 
+def extract_roads(steps):
+    roads = []
+
+    for step in steps:
+        road = extract_road_name(step)
+
+        # remove duplicates in sequence
+        if not roads or roads[-1] != road:
+            roads.append(road)
+
+    return roads
+    
 def extract_key_roads(steps):
     roads = extract_roads(steps)
 
