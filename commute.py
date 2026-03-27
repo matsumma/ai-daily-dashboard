@@ -168,6 +168,15 @@ def send_telegram_message(message):
     
     return response.json()
 
+def extract_road_name(step):
+    # Match "onto XYZ"
+    match = re.search(r'onto (.+)', step)
+    if match:
+        return match.group(1)
+
+    # fallback: return step if it's already a road name
+    return step
+    
 def extract_roads(steps):
     roads = []
 
