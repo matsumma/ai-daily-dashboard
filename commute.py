@@ -505,7 +505,8 @@ if __name__ == "__main__":
     print("🔍 Checking triggers...")
 
     command = check_for_command()
-    scheduled_trigger = should_run_scheduled()
+    #scheduled_trigger = should_run_scheduled()
+    scheduled_trigger = False
 
     print(f"Command: {command}, Scheduled: {scheduled_trigger}")
 
